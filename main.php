@@ -9,7 +9,7 @@ $apiKey = 'PUSHBULLET_API_TOKEN';
 // Duolingo
 $username = "DUOLINGO_USERNAME";
 $jwt = 'DUOLINGO_JWT';
-$filePath = 'date.txt';
+$filePath = dirname(__FILE__) .'/date.txt';
 
 if (file_exists('settings.php')) {
     require_once 'settings.php';
