@@ -89,30 +89,27 @@ function pickMessage(): string
 
 // 日付を比較
 if (compareCurrentDateWithFileDate($filePath)) {
-    echo "日付は同じです。\n";
+    // do nothing
 } else {
-    //echo "日付は異なります。\n";
+    $notifier = new PushbulletNotifier($apiKey);
 
-    $duo = new Duolingo($username, $jwt);
-    $duo->makeDuolingoSetting();
-    $data = $duo->getUserData();
+    try {
+        $duo = new Duolingo($username, $jwt);
+        $duo->makeDuolingoSetting();
+        $data = $duo->getUserData();
 
-    if (!isset($data['streak_extended_today'])) {
-        $notifier = new PushbulletNotifier($apiKey);
-        $result = $notifier->sendNotification('Duolingo Notifier', 'error');
-        exit;
-    }
-
-    if ($data['streak_extended_today'] === false) {
-        $notifier = new PushbulletNotifier($apiKey);
-        $result = $notifier->sendNotification('Duolingo Notifier', pickMessage());
-    } else {
-        // 日付を書き込み
-        try {
-            writeCurrentDateToFile($filePath);
-        } catch (Exception $e) {
-            echo "エラー: " . $e->getMessage() . "\n";
+        if (!isset($data['streak_extended_today'])) {
+            throw new Exception('cannot get user data: streak_extended_today');
         }
+
+        if ($data['streak_extended_today'] === false) {
+            $result = $notifier->sendNotification('Duolingo Notifier', pickMessage());
+        } else {
+            writeCurrentDateToFile($filePath);
+        }
+    } catch (Exception $e) {
+        echo "エラー: " . $e->getMessage() . PHP_EOL;
+        $result = $notifier->sendNotification('Duolingo Notifier', $e->getMessage());
     }
 
 }
