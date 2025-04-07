@@ -3,9 +3,17 @@
 require_once 'PushbulletNotifier.php';
 require_once 'Duolingo.php';
 
-require_once 'settings.php';
+// Pushbullet
+$apiKey = 'PUSHBULLET_API_TOKEN';
 
+// Duolingo
+$username = "DUOLINGO_USERNAME";
+$jwt = 'DUOLINGO_JWT';
 $filePath = 'date.txt';
+
+if (file_exists('settings.php')) {
+    require_once 'settings.php';
+}
 
 /**
  * 現在の日付とファイルに書かれた日付を比較する
