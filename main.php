@@ -4,7 +4,8 @@ require_once 'PushbulletNotifier.php';
 require_once 'Duolingo.php';
 
 // Pushbullet
-$apiKey = 'PUSHBULLET_API_TOKEN';
+$apiKey = null; // pushbullet api token
+$device_iden = null;
 
 // Duolingo
 $username = "DUOLINGO_USERNAME";
@@ -103,13 +104,13 @@ if (compareCurrentDateWithFileDate($filePath)) {
         }
 
         if ($data['streak_extended_today'] === false) {
-            $result = $notifier->sendNotification('Duolingo Notifier', pickMessage());
+            $result = $notifier->sendNotification('Duolingo Notifier', pickMessage(), $device_iden);
         } else {
             writeCurrentDateToFile($filePath);
         }
     } catch (Exception $e) {
         echo "エラー: " . $e->getMessage() . PHP_EOL;
-        $result = $notifier->sendNotification('Duolingo Notifier', $e->getMessage());
+        $result = $notifier->sendNotification('Duolingo Notifier', $e->getMessage(), $device_iden);
     }
 
 }
