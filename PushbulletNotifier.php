@@ -43,7 +43,8 @@ class PushbulletNotifier {
     }
 
     public function listDevices() {
-        $ch = curl_init($this->devicesEndpoint);
+        $end_point = "https://api.pushbullet.com/v2/devices";
+        $ch = curl_init($end_point);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_HTTPHEADER, array(
             'Access-Token: ' . $this->apiKey,
