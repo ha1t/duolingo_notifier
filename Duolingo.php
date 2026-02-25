@@ -2,23 +2,16 @@
 
 class Duolingo {
     private $duolingoName;
-    private $duolingoJwt;
-    private $latestNumber;
-    private $language;
     private $duolingoData;
 
     /**
      * コンストラクタ
      *
      * @param string $duolingoName ユーザー名
-     * @param string $duolingoJwt JWT認証トークン
-     * @param int $latestNumber 取得する最新アイテム数
+     * @param string $duolingoJwt JWT認証トークン（互換性のため残すが未使用）
      */
-    public function __construct($duolingoName, $duolingoJwt, $latestNumber = 50) {
+    public function __construct($duolingoName, $duolingoJwt = null) {
         $this->duolingoName = $duolingoName;
-        $this->duolingoJwt = $duolingoJwt;
-        $this->latestNumber = $latestNumber;
-        $this->language = null;
         $this->duolingoData = null;
     }
 
@@ -29,40 +22,50 @@ class Duolingo {
      * @throws Exception 処理中にエラーが発生した場合
      */
     public function makeDuolingoSetting() {
-        try {
-            // 基本リクエストヘッダー
-            $headers = [
-                'User-Agent: Mozilla/5.0',
-                'Accept: application/json',
-                'Content-Type: application/json'
-            ];
+        $headers = [
+            'User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+            'Accept: application/json',
+        ];
 
-            // ユーザー情報を取得
-            $userHeaders = $headers;
-            $userHeaders[] = 'Authorization: Bearer ' . $this->duolingoJwt;
+        $fields = urlencode('users{id,username,streak,streakData{currentStreak{startDate,endDate,length}}}');
+        $url = "https://www.duolingo.com/2017-06-30/users?username={$this->duolingoName}&fields={$fields}";
 
-            $ch = curl_init("https://www.duolingo.com/api/1/users/show?username={$this->duolingoName}");
-            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-            curl_setopt($ch, CURLOPT_HTTPHEADER, $userHeaders);
-            $response = curl_exec($ch);
+        $ch = curl_init($url);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+        $response = curl_exec($ch);
 
-            $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-            if ($httpCode !== 200) {
-                throw new Exception("ユーザープロファイルの取得に失敗しました。ステータスコード: " . $httpCode);
-            }
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
 
-            $this->duolingoData = json_decode($response, true);
-            curl_close($ch);
-
-            // 学習言語を設定
-            $this->language = $this->duolingoData['learning_language'] ?? null;
-
-            return true;
-        } catch (Exception $e) {
-            throw $e;
+        if ($httpCode !== 200) {
+            throw new Exception("ユーザープロファイルの取得に失敗しました。ステータスコード: " . $httpCode);
         }
-    }
 
+        $data = json_decode($response, true);
+
+        if (!isset($data['users'][0])) {
+            throw new Exception("ユーザーが見つかりませんでした: " . $this->duolingoName);
+        }
+
+        $user = $data['users'][0];
+
+        // 旧APIとの互換性のため streak_extended_today を算出
+        $streakExtendedToday = false;
+        if (isset($user['streakData']['currentStreak']['endDate'])) {
+            $endDate = $user['streakData']['currentStreak']['endDate'];
+            $today = date('Y-m-d');
+            $streakExtendedToday = ($endDate === $today);
+        }
+
+        $this->duolingoData = [
+            'streak_extended_today' => $streakExtendedToday,
+            'streak' => $user['streak'] ?? 0,
+            'username' => $user['username'] ?? $this->duolingoName,
+        ];
+
+        return true;
+    }
 
     /**
      * ユーザーデータを取得する
@@ -72,24 +75,4 @@ class Duolingo {
     public function getUserData() {
         return $this->duolingoData;
     }
-
-    /**
-     * 現在の学習言語を取得する
-     *
-     * @return string|null 学習言語
-     */
-    public function getLearningLanguage() {
-        return $this->language;
-    }
-
 }
-
-/*
-$username = "YOUR_USERNAME";
-$jwt = 'JWT_TOKEN';
-$duo = new Duolingo($username, $jwt);
-$duo->makeDuolingoSetting();
-$data = $duo->getUserData();
-var_dump($data['streak_extended_today']);
- */
-
