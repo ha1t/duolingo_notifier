@@ -1,14 +1,19 @@
 <?php
 
-class PushbulletNotifier {
+namespace DuolingoNotifier;
+
+class PushbulletNotifier
+{
     private $apiKey;
     private $endpoint = 'https://api.pushbullet.com/v2/pushes';
 
-    public function __construct($apiKey) {
+    public function __construct($apiKey)
+    {
         $this->apiKey = $apiKey;
     }
 
-    public function sendNotification($title, $body, $device_iden = null) {
+    public function sendNotification($title, $body, $device_iden = null)
+    {
         $data = array(
             'type' => 'note',
             'title' => $title,
@@ -41,7 +46,8 @@ class PushbulletNotifier {
         }
     }
 
-    public function listDevices() {
+    public function listDevices()
+    {
         $end_point = "https://api.pushbullet.com/v2/devices";
         $context = stream_context_create([
             'http' => [
@@ -72,4 +78,3 @@ $notifier = new PushbulletNotifier($apiKey);
 $result = $notifier->sendNotification('通知タイトル', '通知本文');
 echo $result;
 */
-

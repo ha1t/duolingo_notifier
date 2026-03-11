@@ -1,6 +1,9 @@
 <?php
 
-class Duolingo {
+namespace DuolingoNotifier;
+
+class Duolingo
+{
     private $duolingoName;
     private $duolingoData;
 
@@ -10,7 +13,8 @@ class Duolingo {
      * @param string $duolingoName ユーザー名
      * @param string $duolingoJwt JWT認証トークン（互換性のため残すが未使用）
      */
-    public function __construct($duolingoName, $duolingoJwt = null) {
+    public function __construct($duolingoName, $duolingoJwt = null)
+    {
         $this->duolingoName = $duolingoName;
         $this->duolingoData = null;
     }
@@ -21,9 +25,12 @@ class Duolingo {
      * @return bool 成功した場合はtrue
      * @throws Exception 処理中にエラーが発生した場合
      */
-    public function makeDuolingoSetting() {
+    public function makeDuolingoSetting()
+    {
         $headers = [
-            'User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+            'User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) ' .
+                'AppleWebKit/537.36 (KHTML, like Gecko) ' .
+                'Chrome/120.0.0.0 Safari/537.36',
             'Accept: application/json',
         ];
 
@@ -79,7 +86,8 @@ class Duolingo {
      *
      * @return array|null ユーザーデータ
      */
-    public function getUserData() {
+    public function getUserData()
+    {
         return $this->duolingoData;
     }
 }

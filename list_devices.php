@@ -1,5 +1,7 @@
 <?php
 
+use DuolingoNotifier\PushbulletNotifier;
+
 require_once 'PushbulletNotifier.php';
 
 // Pushbullet
@@ -14,4 +16,3 @@ $notifier = new PushbulletNotifier($apiKey);
 $result = $notifier->listDevices();
 
 var_dump($result);
-
