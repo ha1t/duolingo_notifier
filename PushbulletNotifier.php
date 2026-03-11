@@ -18,20 +18,19 @@ class PushbulletNotifier {
             $data['device_iden'] = $device_iden;
         }
 
-        $ch = curl_init($this->endpoint);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_POST, true);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
-        curl_setopt($ch, CURLOPT_HTTPHEADER, array(
-            'Access-Token: ' . $this->apiKey,
-            'Content-Type: application/json',
-        ));
-
-        $response = curl_exec($ch);
-        curl_close($ch);
+        $jsonBody = json_encode($data);
+        $context = stream_context_create([
+            'http' => [
+                'method' => 'POST',
+                'header' => "Access-Token: {$this->apiKey}\r\nContent-Type: application/json",
+                'content' => $jsonBody,
+                'ignore_errors' => true,
+            ],
+        ]);
+        $response = file_get_contents($this->endpoint, false, $context);
 
         if ($response === false) {
-            return 'cURLエラー: ' . curl_error($ch);
+            return 'file_get_contentsエラー: HTTPリクエストに失敗しました。';
         } else {
             $result = json_decode($response, true);
             if (isset($result['error'])) {
@@ -44,18 +43,17 @@ class PushbulletNotifier {
 
     public function listDevices() {
         $end_point = "https://api.pushbullet.com/v2/devices";
-        $ch = curl_init($end_point);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_HTTPHEADER, array(
-            'Access-Token: ' . $this->apiKey,
-            'Content-Type: application/json',
-        ));
-
-        $response = curl_exec($ch);
-        curl_close($ch);
+        $context = stream_context_create([
+            'http' => [
+                'method' => 'GET',
+                'header' => "Access-Token: {$this->apiKey}\r\nContent-Type: application/json",
+                'ignore_errors' => true,
+            ],
+        ]);
+        $response = file_get_contents($end_point, false, $context);
 
         if ($response === false) {
-            return 'cURLエラー: ' . curl_error($ch);
+            return 'file_get_contentsエラー: HTTPリクエストに失敗しました。';
         } else {
             $result = json_decode($response, true);
             if (isset($result['error'])) {

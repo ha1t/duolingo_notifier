@@ -30,13 +30,20 @@ class Duolingo {
         $fields = urlencode('users{id,username,streak,streakData{currentStreak{startDate,endDate,length}}}');
         $url = "https://www.duolingo.com/2017-06-30/users?username={$this->duolingoName}&fields={$fields}";
 
-        $ch = curl_init($url);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
-        $response = curl_exec($ch);
+        $context = stream_context_create([
+            'http' => [
+                'method' => 'GET',
+                'header' => implode("\r\n", $headers),
+                'ignore_errors' => true,
+            ],
+        ]);
+        $response = file_get_contents($url, false, $context);
 
-        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        curl_close($ch);
+        $httpCode = 0;
+        if (isset($http_response_header[0])) {
+            preg_match('/HTTP\/\S+\s+(\d+)/', $http_response_header[0], $matches);
+            $httpCode = isset($matches[1]) ? (int)$matches[1] : 0;
+        }
 
         if ($httpCode !== 200) {
             throw new Exception("ユーザープロファイルの取得に失敗しました。ステータスコード: " . $httpCode);
